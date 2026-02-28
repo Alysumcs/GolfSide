@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="sk" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOLFSIDE | Rekreačný areál pre vaše zážitky pri jazere a golfe</title>
+    <meta name="description" content="Hľadáte ideálne miesto na oddych? GolfSide v Sedíne ponúka exkluzívne rekreačné domy a dvojdomy pri jazere, kúsok od golfového ihriska a Aqua Areny.">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Poppins:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Adobe Fonts -->
+    <link rel="stylesheet" href="https://use.typekit.net/irs5niv.css">
+    
+    <!-- GSAP & ScrollTrigger -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Tailwind Konfigurácia -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['sofia-pro', 'Poppins', 'sans-serif'],
+                        heading: ['fromage', 'Playfair Display', 'serif'], 
+                    },
+                    colors: {
+                        brand: {
+                            dark: '#111111',
+                            light: '#ffffff',
+                            gold: '#B89B7B', 
+                            gray: '#f5f5f5',
+                            cream: '#f4ebe1',
+                            golf: '#01352f',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- ================= CSS ŠTÝLY ================= -->
+    <style>
+        body { background-color: #ffffff; color: #111111; overflow-x: hidden; }
+        .view { display: none; }
+        .view.active { display: block; }
+        
+        /* Animácia prechodu medzi podstránkami */
+        .page-transition {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            background-color: #01352f; z-index: 9999;
+            transform: translateY(100%); pointer-events: none;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .transition-text {
+            opacity: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Navigácia */
+        .nav-glass {
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+        }
+        
+        .nav-transparent {
+            background: transparent; border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .nav-btn-custom { transition: all 0.3s ease; }
+        .nav-btn-custom:hover {
+            background-color: #ffffff !important; color: #01352f !important;
+            border-color: #ffffff !important; box-shadow: 0 4px 15px rgba(1, 53, 47, 0.2);
+            animation: none;
+        }
+
+        /* Pulzujúce efekty na tlačidlách */
+        @keyframes menuPulse {
+            0% { box-shadow: 0 0 0 0 rgba(184, 155, 123, 0.7); }
+            70% { box-shadow: 0 0 0 12px rgba(184, 155, 123, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(184, 155, 123, 0); }
+        }
+        .menu-pulse { animation: menuPulse 2s infinite; border-color: #B89B7B; color: #B89B7B; }
+
+        @keyframes customPulse {
+            0% { box-shadow: 0 0 0 0 rgba(184, 155, 123, 0.6); }
+            70% { box-shadow: 0 0 0 15px rgba(184, 155, 123, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(184, 155, 123, 0); }
+        }
+        .btn-pulse { animation: customPulse 2s infinite; }
+
+        /* Mapové piny (Bodky na mape) - ÚPRAVA PRE MOBIL */
+        .map-pin { 
+            position: absolute; transform: translate(-50%, -50%); cursor: pointer; z-index: 10; 
+        }
+        .map-pin::before {
+            content: ''; position: absolute; top: 50%; left: 50%; 
+            width: 20px; height: 20px; /* Menší pulz na mobile */
+            background-color: rgba(220, 38, 38, 0.4); 
+            border-radius: 50%;
+            transform: translate(-50%, -50%); animation: pulse 2s infinite;
+        }
+        .map-pin-inner {
+            position: relative; 
+            width: 8px; height: 8px; /* Menšia bodka na mobile */
+            background-color: #dc2626; 
+            border-radius: 50%; box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+        .map-pin:hover { z-index: 40; }
+        .map-pin:hover .map-pin-inner { transform: scale(1.6); background-color: #01352f; }
+        
+        /* Obnovenie pôvodnej veľkosti pinov na tabletoch a počítačoch */
+        @media (min-width: 768px) {
+            .map-pin::before { width: 30px; height: 30px; }
+            .map-pin-inner { width: 12px; height: 12px; }
+        }
+
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+        }
+
+        /* Highlight efekt po prekliku z tabuľky na mapu */
+        .pin-highlight {
+            transform: scale(2.5) !important;
+            background-color: #01352f !important;
+            box-shadow: 0 0 20px rgba(1, 53, 47, 0.8) !important;
+            transition: all 0.3s ease !important;
+        }
+
+        @keyframes floatIcon {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+        .icon-float { animation: floatIcon 3.5s ease-in-out infinite; }
+
+        /* GSAP a Scroll vlastnosti */
+        .overflow-hidden-text { overflow: hidden; display: inline-block; vertical-align: bottom; }
+        .gsap-img-reveal-container { overflow: hidden; }
+        .gsap-img-reveal { clip-path: polygon(0 0, 100% 0, 100% 0, 0 0); }
+
+        .table-scrollbar::-webkit-scrollbar { height: 6px; }
+        .table-scrollbar::-webkit-scrollbar-track { background: #f5f5f5; border-radius: 4px; }
+        .table-scrollbar::-webkit-scrollbar-thumb { background: #B89B7B; border-radius: 4px; }
+
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Topografický vzor (Jemné pozadie pre svetlé plochy) */
+        .pattern-overlay { position: relative; overflow: hidden; z-index: 1; }
+        .pattern-overlay::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url('assets/topographic%20pattern.svg'); 
+            background-repeat: no-repeat; 
+            background-position: center center; 
+            background-size: cover; 
+            opacity: 0.05; /* Ubraná viditeľnosť, veľmi jemný efekt */
+            pointer-events: none;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-brand-gold selection:text-white font-sans relative">
+
+    <div class="fixed inset-0 pointer-events-none z-[1] overflow-hidden" id="golf-balls-layer"></div>
+
+    <!-- Animovaná roleta prechodu -->
+    <div class="page-transition" id="transition-curtain">
+        <div class="transition-text w-48 md:w-64 h-24 opacity-0 flex items-center justify-center" id="transition-text">
+            <img src="assets/logo.svg" alt="GolfSide Logo" class="w-full h-auto" onerror="this.style.display='none'">
+        </div>
+    </div>
+
+    <!-- ================= HLAVNÁ NAVIGÁCIA ================= -->
+    <nav class="fixed w-full z-50 transition-all duration-500 nav-transparent" id="navbar">
+        <div class="w-[90%] max-w-[1400px] mx-auto">
+            <div class="flex justify-between items-center h-24" id="nav-content">
+                <div class="flex-shrink-0 cursor-pointer" onclick="navigateTo('home')">
+                    <div id="nav-logo-container" class="h-16 md:h-24 w-48 md:w-64 transition-all duration-300 flex items-center">
+                        <img id="nav-logo-img" src="assets/logo.svg" alt="GolfSide Logo" class="h-full w-auto object-contain transition-opacity duration-300" onerror="this.style.display='none'">
+                    </div>
+                </div>
+                <!-- Desktop Menu -->
+                <div class="hidden lg:flex space-x-10 items-center">
+                    <button onclick="navigateTo('home')" class="nav-link text-xs uppercase tracking-widest font-semibold transition-colors duration-300 text-white hover:text-brand-gold">O projekte</button>
+                    <button onclick="navigateTo('map')" class="nav-link text-xs uppercase tracking-widest font-bold text-brand-gold hover:opacity-80 transition-opacity flex items-center">
+                        <i data-lucide="map" class="w-4 h-4 mr-2"></i> Mapa domov
+                    </button>
+                    <button onclick="navigateTo('standard')" class="nav-link text-xs uppercase tracking-widest font-semibold transition-colors duration-300 text-white hover:text-brand-gold">Štandard domu</button>
+                    <button onclick="navigateTo('news')" class="nav-link text-xs uppercase tracking-widest font-semibold transition-colors duration-300 text-white hover:text-brand-gold">Novinky</button>
+                    
+                    <a href="#kontakt" class="nav-btn-custom menu-pulse border border-brand-gold text-brand-gold px-8 py-3 text-xs uppercase tracking-widest font-semibold" id="nav-btn">
+                        Kontakt
+                    </a>
+                </div>
+                <!-- Mobile Menu Button -->
+                <div class="lg:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-brand-gold hover:opacity-80 transition-opacity p-2">
+                        <i data-lucide="menu" class="w-8 h-8"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ================= MOBILNÉ MENU ================= -->
+    <div id="mobile-menu" class="fixed inset-0 bg-brand-dark z-[60] transform translate-x-full transition-transform duration-500 flex flex-col justify-center items-center lg:hidden">
+        <button id="close-menu-btn" class="absolute top-8 right-6 text-white hover:text-brand-gold transition-colors p-2">
+            <i data-lucide="x" class="w-8 h-8"></i>
+        </button>
+        <div class="w-48 mb-12">
+            <img src="assets/logo.svg" alt="GolfSide Logo" class="w-full h-auto object-contain" onerror="this.style.display='none'">
+        </div>
+        <div class="flex flex-col space-y-8 items-center text-center">
+            <button onclick="navigateFromMobile('home')" class="text-xl uppercase tracking-widest font-semibold transition-colors duration-300 text-white hover:text-brand-gold">O projekte</button>
+            <button onclick="navigateFromMobile('map')" class="text-xl uppercase tracking-widest font-bold text-brand-gold hover:opacity-80 transition-opacity flex items-center">
+                <i data-lucide="map" class="w-5 h-5 mr-3"></i> Mapa domov
+            </button>
+            <button onclick="navigateFromMobile('standard')" class="text-xl uppercase tracking-widest font-semibold transition-colors duration-300 text-white hover:text-brand-gold">Štandard domu</button>
+            <button onclick="navigateFromMobile('news')" class="text-xl uppercase tracking-widest font-semibold transition-colors duration-300 text-white hover:text-brand-gold">Novinky</button>
+            
+            <a href="#kontakt" onclick="closeMobileMenu()" class="mt-8 border border-brand-gold text-brand-gold px-10 py-4 text-sm uppercase tracking-widest font-semibold hover:bg-brand-gold hover:text-white transition-colors">
+                Kontakt
+            </a>
+        </div>
+    </div>
+
+    <!-- ================= HLAVNÝ OBSAH (VIEWS) ================= -->
+    <main id="app-content">
+
+        <!-- ================= PODSTRÁNKA: DOMOV (O PROJEKTE) ================= -->
+        <div id="view-home" class="view active" data-nav-theme="dark">
+            <section class="relative h-screen flex items-center justify-start overflow-hidden bg-brand-dark">
+                <div class="absolute inset-0 w-full h-full opacity-80">
+                    <img src="assets/hero.jpg" onerror="this.src='https://images.unsplash.com/photo-1613490493576-7fde63acd811?ixlib=rb-4.0.3&auto=format&fit=crop&w=2071&q=80'" alt="Luxusná vila pri jazere" class="w-full h-full object-cover hero-img scale-110" />
+                    <div class="absolute inset-0 bg-gradient-to-r from-brand-golf/90 via-brand-dark/40 to-transparent"></div>
+                </div>
+                
+                <div class="relative z-10 w-[90%] max-w-[1400px] mx-auto flex flex-col items-start text-left mt-20 md:mt-32">
+                    <div class="overflow-hidden-text mb-6">
+                        <p class="gsap-hero-title text-brand-gold uppercase tracking-[0.4em] text-xs font-bold">Najlepšie miesto pre pokojný relax</p>
+                    </div>
+                    
+                    <h1 class="font-heading font-normal text-4xl md:text-6xl lg:text-[6rem] text-white mb-6 leading-[1.1] tracking-tight">
+                        <div class="overflow-hidden-text"><span class="gsap-hero-title block">Dokonalý relax</span></div>
+                        <div class="overflow-hidden-text"><span class="gsap-hero-title block font-semibold text-brand-gold">pri jazere a golfe.</span></div>
+                    </h1>
+
+                    <div class="overflow-hidden-text mb-10 max-w-2xl">
+                        <p class="gsap-hero-title text-white/80 font-light text-base md:text-lg leading-relaxed">
+                            Exkluzívne rekreačné domy v lokalite Sedín. Objavte miesto, kde sa spája nedotknutá príroda, prestížny golf a vodné športy.
+                        </p>
+                    </div>
+                    
+                    <div class="overflow-hidden-text mt-4">
+                        <button onclick="navigateTo('map')" class="btn-pulse gsap-hero-title group flex items-center bg-brand-gold text-white px-8 md:px-10 py-4 text-[10px] md:text-xs uppercase tracking-[0.2em] font-bold hover:bg-white hover:text-brand-golf transition-all duration-300 hover:scale-105 shadow-[0_0_30px_rgba(184,155,123,0.3)]">
+                            Zobraziť ponuku bývania
+                            <i data-lucide="arrow-right" class="w-4 h-4 ml-3 transition-transform duration-300 group-hover:translate-x-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Aplikovaný pattern-overlay -->
+            <section class="py-24 md:py-32 bg-brand-light relative pattern-overlay">
+                <div class="absolute inset-0 flex justify-evenly pointer-events-none opacity-50 z-0">
+                    <div class="w-[1px] h-full bg-black/5"></div><div class="w-[1px] h-full bg-black/5"></div>
+                    <div class="w-[1px] h-full bg-black/5"></div><div class="w-[1px] h-full bg-black/5"></div>
+                </div>
+
+                <div class="w-[90%] max-w-[1400px] mx-auto relative z-10">
+                    <div class="mb-20 text-left max-w-3xl gsap-fade-up">
+                        <span class="text-brand-gold uppercase tracking-[0.3em] text-[10px] font-bold block mb-4 flex items-center justify-start gap-2">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i> O projekte GolfSide
+                        </span>
+                        <h2 class="font-heading font-normal text-4xl md:text-5xl lg:text-6xl text-brand-dark leading-tight">
+                            Miesto, ktoré spája <span class="font-bold text-brand-gold italic">prírodu, golf a relax.</span>
+                        </h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center mb-24">
+                        <div class="order-2 lg:order-1 rounded-2xl overflow-hidden shadow-2xl gsap-img-reveal-container">
+                            <img src="assets/C3_L.jpg" onerror="this.src='https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80'" alt="Privátna pláž" class="w-full h-[300px] md:h-[400px] lg:h-[500px] object-cover gsap-img-reveal" />
+                        </div>
+                        <div class="order-1 lg:order-2 gsap-fade-up">
+                            <div class="w-14 h-14 bg-brand-cream rounded-full flex items-center justify-center text-brand-gold mb-6 shadow-sm">
+                                <i data-lucide="waves" class="w-7 h-7"></i>
+                            </div>
+                            <h3 class="font-heading font-bold text-3xl md:text-4xl text-brand-dark mb-4">Súkromné jazero a relax na pláži</h3>
+                            <p class="text-gray-500 font-light text-base md:text-lg leading-relaxed mb-6">
+                                Ak sa rozhodnete pre rekreačný dom priamo pri jazere, okrem neopísateľného výhľadu si môžete zvoliť aj <strong>vlastné mólo či súkromnú pláž</strong> s postupným vstupom do vody.
+                            </p>
+                            <p class="text-gray-500 font-light text-base md:text-lg leading-relaxed">
+                                Mysleli sme aj na domy a dvojdomy, ktoré nie sú v priamom kontakte so štrkoviskom. Priamo v areáli sú pre vás pripravené <strong>2 veľké komunitné pláže</strong>, ktoré môžete kedykoľvek využiť na dokonalý relax a plávanie.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center mb-24">
+                        <div class="order-1 lg:order-1 gsap-fade-up">
+                            <div class="w-14 h-14 bg-brand-cream rounded-full flex items-center justify-center text-brand-gold mb-6 shadow-sm">
+                                <i data-lucide="flag-triangle-right" class="w-7 h-7"></i>
+                            </div>
+                            <h3 class="font-heading font-bold text-3xl md:text-4xl text-brand-dark mb-4">Golfový raj a aktívny oddych</h3>
+                            <p class="text-gray-500 font-light text-base md:text-lg leading-relaxed mb-6">
+                                Milovníci golfu ocenia jedinečnú polohu – projekt je prepojený príjemným poznávacím chodníkom priamo s prestížnym golfovým areálom <strong>Golf Sedín</strong>.
+                            </p>
+                            <p class="text-gray-500 font-light text-base md:text-lg leading-relaxed">
+                                Nie je to však len o golfe. Iba 1 km od nás sa nachádza vyhľadávaná <strong>Aqua Arena Čierna voda</strong>, kde si naplno užijete vodné športy. K dispozícii je windsurfing a dokonca aj certifikovaná potápačská škola.
+                            </p>
+                        </div>
+                        <div class="order-2 lg:order-2 rounded-2xl overflow-hidden shadow-2xl gsap-img-reveal-container">
+                            <img src="assets/AB_F_L.jpg" onerror="this.src='https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80'" alt="Golfový raj" class="w-full h-[300px] md:h-[400px] lg:h-[500px] object-cover gsap-img-reveal" />
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center mb-24">
+                        <div class="order-2 lg:order-1 rounded-2xl overflow-hidden shadow-2xl gsap-img-reveal-container">
+                            <img src="assets/FIMI0059-2.jpg" onerror="this.src='https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80'" alt="Príroda a jazero" class="w-full h-[300px] md:h-[400px] lg:h-[500px] object-cover gsap-img-reveal" />
+                        </div>
+                        <div class="order-1 lg:order-2 gsap-fade-up">
+                            <div class="w-14 h-14 bg-brand-cream rounded-full flex items-center justify-center text-brand-gold mb-6 shadow-sm">
+                                <i data-lucide="leaf" class="w-7 h-7"></i>
+                            </div>
+                            <h3 class="font-heading font-bold text-3xl md:text-4xl text-brand-dark mb-4">Chránená príroda a bezstarostný servis</h3>
+                            <p class="text-gray-500 font-light text-base md:text-lg leading-relaxed mb-6">
+                                Naše domy sú obklopené krásnou prírodou na hranici chránenej lokality <strong>Sedínske tŕstie</strong>. Je to ideálne prostredie na prechádzky, cyklotúry a rybolov. Pre rodiny pripravujeme moderné ihrisko a vyhliadkovú plošinu.
+                            </p>
+                            <p class="text-gray-500 font-light text-base md:text-lg leading-relaxed">
+                                V uzavretom areáli GolfSide poskytujeme <strong>profesionálnu správu a manažment</strong>. Úplne vás odbremeníme od povinností – o údržbu zelene vo vašom okolí sa postaráme my, aby ste si mohli užívať voľný čas tak, ako si zaslúžite.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="py-24 md:py-32 bg-brand-golf relative">
+                <div class="w-[90%] max-w-[1400px] mx-auto relative z-10">
+                    <div class="text-left mb-16 gsap-fade-up">
+                        <h3 class="font-heading font-bold text-4xl md:text-5xl text-white mb-4">Prečo si vybrať GolfSide?</h3>
+                        <p class="text-white/70 font-light text-lg max-w-2xl">Všetko, čo potrebujete pre dokonalý relax a výhodnú investíciu do budúcnosti.</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-16 gap-x-12 gsap-stagger-text">
+                        <div class="text-left group cursor-default">
+                            <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-6 text-brand-gold transition-all duration-500 group-hover:bg-brand-gold group-hover:text-white group-hover:-translate-y-2 group-hover:shadow-[0_10px_20px_rgba(184,155,123,0.3)] icon-float" style="animation-delay: 0s;">
+                                <i data-lucide="map-pin" class="w-7 h-7 transition-transform duration-500 group-hover:scale-110"></i>
+                            </div>
+                            <h4 class="font-bold text-white uppercase tracking-widest text-xs mb-3">Unikátna Poloha</h4>
+                            <p class="text-white/60 font-light text-sm leading-relaxed">Bratislava 40min, Trnava 30min, Senec 15min, dokonalý relax 0min.</p>
+                        </div>
+                        
+                        <div class="text-left group cursor-default">
+                            <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-6 text-brand-gold transition-all duration-500 group-hover:bg-brand-gold group-hover:text-white group-hover:-translate-y-2 group-hover:shadow-[0_10px_20px_rgba(184,155,123,0.3)] icon-float" style="animation-delay: 0.2s;">
+                                <i data-lucide="settings" class="w-7 h-7 transition-transform duration-500 group-hover:rotate-90"></i>
+                            </div>
+                            <h4 class="font-bold text-white uppercase tracking-widest text-xs mb-3">Bezstarostná Údržba</h4>
+                            <p class="text-white/60 font-light text-sm leading-relaxed">Areál so správou a manažmentom, ktorá sa o všetko postará.</p>
+                        </div>
+                        
+                        <div class="text-left group cursor-default">
+                            <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-6 text-brand-gold transition-all duration-500 group-hover:bg-brand-gold group-hover:text-white group-hover:-translate-y-2 group-hover:shadow-[0_10px_20px_rgba(184,155,123,0.3)] icon-float" style="animation-delay: 0.4s;">
+                                <i data-lucide="flag-triangle-right" class="w-7 h-7 transition-transform duration-500 group-hover:translate-x-1 group-hover:-translate-y-1"></i>
+                            </div>
+                            <h4 class="font-bold text-white uppercase tracking-widest text-xs mb-3">Golfový Raj</h4>
+                            <p class="text-white/60 font-light text-sm leading-relaxed">V bezprostrednej blízkosti golfového areálu Golf Sedín.</p>
+                        </div>
+                        
+                        <div class="text-left group cursor-default">
+                            <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-6 text-brand-gold transition-all duration-500 group-hover:bg-brand-gold group-hover:text-white group-hover:-translate-y-2 group-hover:shadow-[0_10px_20px_rgba(184,155,123,0.3)] icon-float" style="animation-delay: 0.6s;">
+                                <i data-lucide="users" class="w-7 h-7 transition-transform duration-500 group-hover:scale-110"></i>
+                            </div>
+                            <h4 class="font-bold text-white uppercase tracking-widest text-xs mb-3">Ideálne Pre Rodiny</h4>
+                            <p class="text-white/60 font-light text-sm leading-relaxed">Bezpečné a pokojné prostredie pre deti.</p>
+                        </div>
+                        
+                        <div class="text-left group cursor-default">
+                            <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-6 text-brand-gold transition-all duration-500 group-hover:bg-brand-gold group-hover:text-white group-hover:-translate-y-2 group-hover:shadow-[0_10px_20px_rgba(184,155,123,0.3)] icon-float" style="animation-delay: 0.8s;">
+                                <i data-lucide="sun" class="w-7 h-7 transition-transform duration-500 group-hover:rotate-45"></i>
+                            </div>
+                            <h4 class="font-bold text-white uppercase tracking-widest text-xs mb-3">Oddych A Relax</h4>
+                            <p class="text-white/60 font-light text-sm leading-relaxed">Pri našom jazere, v blízkom Aqua Areana Čierna voda, či prechádzkou cez chránenú lokalitu Sedínske tŕstie.</p>
+                        </div>
+                        
+                        <div class="text-left group cursor-default">
+                            <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-6 text-brand-gold transition-all duration-500 group-hover:bg-brand-gold group-hover:text-white group-hover:-translate-y-2 group-hover:shadow-[0_10px_20px_rgba(184,155,123,0.3)] icon-float" style="animation-delay: 1s;">
+                                <i data-lucide="crown" class="w-7 h-7 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110"></i>
+                            </div>
+                            <h4 class="font-bold text-white uppercase tracking-widest text-xs mb-3">Investícia Do Budúcnosti</h4>
+                            <p class="text-white/60 font-light text-sm leading-relaxed">Atraktívna lokalita s rastúcou hodnotou nehnuteľností.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="py-24 md:py-32 bg-brand-light relative overflow-hidden pattern-overlay">
+                <div class="w-[90%] max-w-[1400px] mx-auto relative z-10">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-center">
+                        <div class="lg:col-span-5 gsap-fade-up">
+                            <span class="text-brand-gold uppercase tracking-[0.3em] text-[10px] font-bold block mb-4 flex items-center justify-start gap-2">
+                                <i data-lucide="route" class="w-4 h-4"></i> Lokalita a dostupnosť
+                            </span>
+                            <h3 class="font-heading font-bold text-4xl md:text-5xl text-brand-dark mb-6 leading-tight">Na skok od dôležitých centier</h3>
+                            <p class="text-gray-500 font-light text-base md:text-lg mb-10 leading-relaxed">
+                                Projekt GolfSide leží v strategickej polohe. Vychutnajte si dokonalý pokoj prírody s mimoriadne rýchlym a pohodlným dopravným napojením do okolitých miest a na diaľnicu.
+                            </p>
+                            
+                            <ul class="space-y-8">
+                                <li class="flex items-start group">
+                                    <div class="w-12 h-12 rounded-full bg-brand-cream flex items-center justify-center text-brand-gold mr-5 flex-shrink-0 group-hover:bg-brand-gold group-hover:text-white transition-colors duration-300">
+                                        <i data-lucide="map-pin" class="w-5 h-5"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="font-bold text-brand-dark text-sm uppercase tracking-widest mb-1 mt-1">Bratislava</h5>
+                                        <p class="text-gray-500 font-light text-sm">Len 40 minút cesty do hlavného mesta.</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-start group">
+                                    <div class="w-12 h-12 rounded-full bg-brand-cream flex items-center justify-center text-brand-gold mr-5 flex-shrink-0 group-hover:bg-brand-gold group-hover:text-white transition-colors duration-300">
+                                        <i data-lucide="map-pin" class="w-5 h-5"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="font-bold text-brand-dark text-sm uppercase tracking-widest mb-1 mt-1">Trnava</h5>
+                                        <p class="text-gray-500 font-light text-sm">Pohodlných 30 minút do krajského mesta.</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-start group">
+                                    <div class="w-12 h-12 rounded-full bg-brand-cream flex items-center justify-center text-brand-gold mr-5 flex-shrink-0 group-hover:bg-brand-gold group-hover:text-white transition-colors duration-300">
+                                        <i data-lucide="map-pin" class="w-5 h-5"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="font-bold text-brand-dark text-sm uppercase tracking-widest mb-1 mt-1">Senec</h5>
+                                        <p class="text-gray-500 font-light text-sm">Iba 15 minút na skok do okresného mesta s kompletnou občianskou vybavenosťou.</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="lg:col-span-7 gsap-fade-up">
+                            <div class="bg-[#f7f9f9] rounded-3xl p-4 md:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-white">
+                                <object data="assets/mapa_sedin.svg" type="image/svg+xml" class="w-full h-auto rounded-2xl pointer-events-none">
+                                    <img src="assets/mapa_sedin.svg" alt="Mapa dostupnosti Sedín" class="w-full h-auto rounded-2xl pointer-events-none">
+                                </object>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ================= PODSTRÁNKA: MAPA ================= -->
+        <div id="view-map" class="view hidden pt-24 md:pt-32 min-h-screen bg-brand-gray pattern-overlay" data-nav-theme="light">
+            <div class="w-[90%] max-w-[1400px] mx-auto py-12 relative z-10">
+                <div class="text-left mb-8 md:mb-16 gsap-stagger-text">
+                    <span class="text-brand-gold uppercase tracking-[0.3em] text-[10px] md:text-xs font-bold block mb-4">Situácia areálu</span>
+                    <h2 class="font-heading font-bold text-4xl md:text-5xl lg:text-6xl text-brand-dark">Vyberte si svoj rekreačný dom</h2>
+                    <p class="text-gray-500 mt-4 md:mt-6 max-w-2xl font-light text-sm md:text-base">Kliknite na konkrétny dom na mape alebo si vyberte z prehľadnej tabuľky dostupnosti nižšie.</p>
+                </div>
+
+                <div id="map-scroll-target" class="relative w-full bg-white shadow-xl rounded-t-2xl p-4 lg:p-8 gsap-fade-up z-10">
+                    <div class="flex flex-wrap justify-center gap-4 md:space-x-8 mb-4 md:mb-6 pb-4 md:pb-6 border-b border-black/10">
+                        <div class="flex items-center"><div class="w-3 h-3 rounded-full bg-red-600 mr-3"></div><span class="text-[10px] md:text-xs uppercase tracking-widest font-semibold text-brand-dark">Voľný</span></div>
+                        <div class="flex items-center"><div class="w-3 h-3 rounded-full bg-orange-400 mr-3"></div><span class="text-[10px] md:text-xs uppercase tracking-widest font-semibold text-brand-dark">Rezervovaný</span></div>
+                        <div class="flex items-center"><div class="w-3 h-3 rounded-full bg-gray-400 mr-3"></div><span class="text-[10px] md:text-xs uppercase tracking-widest font-semibold text-brand-dark">Predaný</span></div>
+                    </div>
+
+                    <!-- Nápoveda pre mobilné zariadenia -->
+                    <div class="md:hidden flex items-center justify-center text-brand-gold text-[10px] uppercase tracking-widest mb-4 font-bold animate-pulse">
+                        <i data-lucide="move-horizontal" class="w-4 h-4 mr-2"></i> Potiahnite mapu do strán
+                    </div>
+
+                    <!-- Obal pre posúvanie na mobiloch s pridaným py-6 pre dýchací priestor -->
+                    <div class="overflow-x-auto hide-scrollbar py-6 -mx-4 px-4 md:mx-0 md:px-0 md:py-0">
+                        <div id="map-image-wrapper" class="relative w-full min-w-[800px] md:min-w-full group shadow-inner cursor-crosshair">
+                            <img src="assets/mapka.jpg" onerror="this.src='https://images.unsplash.com/photo-1524813686514-a57563d77965?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'" alt="Letecká mapa areálu" class="w-full h-auto block rounded-xl">
+                            
+                            <!-- Kontajner pre piny (Bodky) -->
+                            <div id="map-pins-container" class="absolute inset-0 z-20"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PLNOŠÍRKOVÁ TABUĽKA -->
+                <div class="w-full bg-white shadow-xl rounded-b-2xl overflow-hidden gsap-fade-up relative -top-2 z-10">
+                    <div class="p-6 md:p-8 border-b border-black/10 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-brand-cream/30 gap-4">
+                        <div>
+                            <h3 class="font-heading font-bold text-xl md:text-2xl text-brand-dark">Cenník a dostupnosť domov</h3>
+                            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest mt-1">Kompletný zoznam nehnuteľností</p>
+                        </div>
+                        <div class="flex items-center gap-3 w-full sm:w-auto">
+                            <label for="statusFilter" class="text-xs md:text-sm font-semibold text-brand-dark uppercase tracking-widest hidden sm:block">Zobraziť:</label>
+                            <select id="statusFilter" onchange="filterTable()" class="bg-white border border-gray-200 text-brand-dark text-xs md:text-sm rounded-sm focus:ring-brand-gold focus:border-brand-gold block w-full sm:w-auto px-4 py-2 outline-none font-medium cursor-pointer shadow-sm">
+                                <option value="all">Všetky domy</option>
+                                <option value="Voľný">Iba Voľné</option>
+                                <option value="Rezervovaný">Iba Rezervované</option>
+                                <option value="Predaný">Iba Predané</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto table-scrollbar max-h-[600px] overflow-y-auto">
+                        <table class="w-full text-sm text-left text-brand-dark min-w-[800px]">
+                            <thead class="text-xs text-brand-dark uppercase tracking-widest bg-brand-cream sticky top-0 z-20 shadow-sm">
+                                <tr>
+                                    <th scope="col" class="px-6 py-5 whitespace-nowrap">Dom</th>
+                                    <th scope="col" class="px-6 py-5 whitespace-nowrap">Typ</th>
+                                    <th scope="col" class="px-6 py-5 text-center whitespace-nowrap">Izby</th>
+                                    <th scope="col" class="px-6 py-5 whitespace-nowrap">Plocha</th>
+                                    <th scope="col" class="px-6 py-5 whitespace-nowrap">Výmera</th>
+                                    <th scope="col" class="px-6 py-5 whitespace-nowrap">Cena</th>
+                                    <th scope="col" class="px-6 py-5 whitespace-nowrap">Stav</th>
+                                    <th scope="col" class="px-6 py-5 text-right whitespace-nowrap">Akcia</th>
+                                </tr>
+                            </thead>
+                            <tbody id="houses-table-body" class="divide-y divide-gray-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PODSTRÁNKA: ŠTANDARD DOMU ================= -->
+        <div id="view-standard" class="view hidden bg-brand-light pattern-overlay" data-nav-theme="light">
+            <div class="pt-24 md:pt-32 w-[90%] max-w-[1400px] mx-auto pb-24 relative z-10">
+                <div class="text-left mb-16 md:mb-20 gsap-stagger-text">
+                    <span class="text-brand-gold uppercase tracking-[0.3em] text-[10px] font-bold block mb-4 flex items-center justify-start gap-2">
+                        <i data-lucide="settings-2" class="w-4 h-4"></i> Štandard a vyhotovenie
+                    </span>
+                    <h2 class="font-heading font-normal text-4xl md:text-5xl lg:text-6xl text-brand-dark leading-tight">
+                        Technologická <span class="font-bold text-brand-gold italic">dokonalosť</span>
+                    </h2>
+                    <p class="text-gray-500 mt-6 max-w-2xl font-light text-base md:text-lg">
+                        Domy v projekte GolfSide sú navrhnuté s dôrazom na maximálny komfort, energetickú nezávislosť a použitie prémiových materiálov.
+                    </p>
+                </div>
+
+                <div class="mb-24 gsap-fade-up">
+                    <h3 class="font-heading font-bold text-2xl md:text-3xl text-brand-dark mb-8 border-b border-black/10 pb-4">Typológia domov</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+                        <div class="bg-brand-gray/90 backdrop-blur-sm p-8 md:p-10 rounded-2xl group hover:shadow-xl transition-all duration-300">
+                            <h4 class="font-heading text-xl md:text-2xl text-brand-dark mb-4">Rekreačný Dvojdom <span class="text-brand-gold">| Typ AB</span></h4>
+                            <p class="text-gray-500 font-light text-sm md:text-base mb-8 leading-relaxed">Kompaktné a racionálne riešenie pre moderné rodiny. Tieto domy ponúkajú 4 priestranné izby, súkromnú záhradku a prístup k spoločným plážam v areáli.</p>
+                            <button onclick="navigateTo('detail-ab')" class="flex items-center text-[10px] md:text-xs uppercase tracking-widest font-bold text-brand-dark group-hover:text-brand-gold transition-colors border-b border-brand-dark group-hover:border-brand-gold pb-1 w-fit">
+                                Zobraziť detail Dvojdomov <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
+                            </button>
+                        </div>
+                        <div class="bg-brand-gray/90 backdrop-blur-sm p-8 md:p-10 rounded-2xl group hover:shadow-xl transition-all duration-300">
+                            <h4 class="font-heading text-xl md:text-2xl text-brand-dark mb-4">Dom pri jazere <span class="text-brand-gold">| Typ C</span></h4>
+                            <p class="text-gray-500 font-light text-sm md:text-base mb-8 leading-relaxed">Vlajková loď projektu. Samostatne stojace 5-izbové vily umiestnené v prvej línii priamo pri brehu jazera. Poskytujú absolútne súkromie, úžasné výhľady.</p>
+                            <button onclick="navigateTo('detail-c')" class="flex items-center text-[10px] md:text-xs uppercase tracking-widest font-bold text-brand-dark group-hover:text-brand-gold transition-colors border-b border-brand-dark group-hover:border-brand-gold pb-1 w-fit">
+                                Zobraziť detail Víl <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-24">
+                    <h3 class="font-heading font-bold text-2xl md:text-3xl text-brand-dark mb-10 border-b border-black/10 pb-4 gsap-fade-up">Technické riešenia domu</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 gsap-stagger-text">
+                        <div class="flex flex-col"><i data-lucide="thermometer-sun" class="w-8 h-8 text-brand-gold mb-4"></i><h4 class="font-bold text-brand-dark uppercase tracking-widest text-xs mb-2">Vykurovanie</h4><p class="text-gray-500 font-light text-sm">Ekologické tepelné čerpadlo v kombinácii s podlahovým vykurovaním.</p></div>
+                        <div class="flex flex-col"><i data-lucide="snowflake" class="w-8 h-8 text-brand-gold mb-4"></i><h4 class="font-bold text-brand-dark uppercase tracking-widest text-xs mb-2">Chladenie</h4><p class="text-gray-500 font-light text-sm">Moderný systém stropného chladenia pre zdravú klímu bez fúkania.</p></div>
+                        <div class="flex flex-col"><i data-lucide="blinds" class="w-8 h-8 text-brand-gold mb-4"></i><h4 class="font-bold text-brand-dark uppercase tracking-widest text-xs mb-2">Tienenie</h4><p class="text-gray-500 font-light text-sm">Elektricky ovládané exteriérové hliníkové žalúzie (Z-profil).</p></div>
+                        <div class="flex flex-col"><i data-lucide="box" class="w-8 h-8 text-brand-gold mb-4"></i><h4 class="font-bold text-brand-dark uppercase tracking-widest text-xs mb-2">Okná a fasáda</h4><p class="text-gray-500 font-light text-sm">Veľkoformátové hliníkové profily s izolačným trojsklom.</p></div>
+                        <div class="flex flex-col"><i data-lucide="wifi" class="w-8 h-8 text-brand-gold mb-4"></i><h4 class="font-bold text-brand-dark uppercase tracking-widest text-xs mb-2">Smart Home</h4><p class="text-gray-500 font-light text-sm">Predpríprava na inteligentnú domácnosť, ovládanie cez smartfón.</p></div>
+                        <div class="flex flex-col"><i data-lucide="zap" class="w-8 h-8 text-brand-gold mb-4"></i><h4 class="font-bold text-brand-dark uppercase tracking-widest text-xs mb-2">Zelená energia</h4><p class="text-gray-500 font-light text-sm">Energetická trieda A0 s prípravou pre inštaláciu solárnych panelov.</p></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-16 items-center gsap-fade-up">
+                    <div class="gsap-img-reveal-container rounded-2xl overflow-hidden shadow-2xl order-2 lg:order-1">
+                        <img src="https://images.unsplash.com/photo-1600210491369-e753d80a41f3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" alt="Terasa domu" class="w-full h-[350px] md:h-[500px] object-cover gsap-img-reveal" />
+                    </div>
+                    <div class="order-1 lg:order-2">
+                        <h3 class="font-heading font-bold text-2xl md:text-3xl text-brand-dark mb-6">Prispôsobenie na mieru</h3>
+                        <p class="text-gray-500 font-light text-base md:text-lg mb-8">Ponúkame flexibilné možnosti klientských zmien, aby sa dom stal vaším skutočným domovom.</p>
+                        <ul class="space-y-6">
+                            <li class="flex items-start"><i data-lucide="check-circle-2" class="w-6 h-6 text-brand-gold mr-4 flex-shrink-0"></i><div><h5 class="font-bold text-brand-dark text-sm uppercase tracking-widest mb-1">Mólo a súkromná pláž</h5></div></li>
+                            <li class="flex items-start"><i data-lucide="check-circle-2" class="w-6 h-6 text-brand-gold mr-4 flex-shrink-0"></i><div><h5 class="font-bold text-brand-dark text-sm uppercase tracking-widest mb-1">Rozšírenie terasy</h5></div></li>
+                            <li class="flex items-start"><i data-lucide="check-circle-2" class="w-6 h-6 text-brand-gold mr-4 flex-shrink-0"></i><div><h5 class="font-bold text-brand-dark text-sm uppercase tracking-widest mb-1">Interiérový štandard</h5></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PODSTRÁNKA: NOVINKY ================= -->
+        <div id="view-news" class="view hidden bg-brand-gray pattern-overlay" data-nav-theme="light">
+            <div class="pt-24 md:pt-32 w-[90%] max-w-[1400px] mx-auto pb-24 relative z-10">
+                <div class="text-left mb-16 md:mb-20 gsap-stagger-text">
+                    <span class="text-brand-gold uppercase tracking-[0.3em] text-[10px] font-bold block mb-4 flex items-center justify-start gap-2">
+                        <i data-lucide="newspaper" class="w-4 h-4"></i> Aktuality
+                    </span>
+                    <h2 class="font-heading font-normal text-4xl md:text-5xl lg:text-6xl text-brand-dark leading-tight">Novinky a priebeh výstavby</h2>
+                    <p class="text-gray-500 mt-6 max-w-2xl font-light text-base md:text-lg">
+                        Zostaňte informovaní o najnovšom dianí a progrese v rezidenčnom areáli GolfSide.
+                    </p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 gsap-fade-up">
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-lg group cursor-pointer border border-transparent hover:border-brand-gold/30 transition-all duration-300 flex flex-col">
+                        <div class="h-48 md:h-56 overflow-hidden relative">
+                            <img src="https://images.unsplash.com/photo-1541888081696-981f471e428e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Stavba" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                            <div class="absolute top-4 left-4 bg-brand-dark text-white text-[10px] uppercase tracking-widest px-3 py-1 font-bold rounded">Stavba</div>
+                        </div>
+                        <div class="p-6 md:p-8 flex-1 flex flex-col">
+                            <p class="text-brand-gold text-xs font-bold mb-3">15. Október 2024</p>
+                            <h3 class="font-heading font-bold text-xl md:text-2xl text-brand-dark mb-4 group-hover:text-brand-gold transition-colors">Spustenie prvej etapy a predaja</h3>
+                            <p class="text-gray-500 font-light text-sm mb-6 flex-1">S radosťou oznamujeme, že sme oficiálne spustili predaj domov v projekte GolfSide...</p>
+                            <span class="text-xs uppercase tracking-widest font-bold text-brand-dark flex items-center group-hover:text-brand-gold transition-colors">Čítať viac <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i></span>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-lg group cursor-pointer border border-transparent hover:border-brand-gold/30 transition-all duration-300 flex flex-col">
+                        <div class="h-48 md:h-56 overflow-hidden relative">
+                            <img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Jazero" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                            <div class="absolute top-4 left-4 bg-brand-dark text-white text-[10px] uppercase tracking-widest px-3 py-1 font-bold rounded">Areál</div>
+                        </div>
+                        <div class="p-6 md:p-8 flex-1 flex flex-col">
+                            <p class="text-brand-gold text-xs font-bold mb-3">2. November 2024</p>
+                            <h3 class="font-heading font-bold text-xl md:text-2xl text-brand-dark mb-4 group-hover:text-brand-gold transition-colors">Kultivácia súkromného jazera</h3>
+                            <p class="text-gray-500 font-light text-sm mb-6 flex-1">Ukončili sme prvú fázu revitalizácie štrkoviska a modelácie spoločných pláží...</p>
+                            <span class="text-xs uppercase tracking-widest font-bold text-brand-dark flex items-center group-hover:text-brand-gold transition-colors">Čítať viac <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i></span>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-lg group cursor-pointer border border-transparent hover:border-brand-gold/30 transition-all duration-300 flex flex-col">
+                        <div class="h-48 md:h-56 overflow-hidden relative">
+                            <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Interiér" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                            <div class="absolute top-4 left-4 bg-brand-dark text-white text-[10px] uppercase tracking-widest px-3 py-1 font-bold rounded">Dizajn</div>
+                        </div>
+                        <div class="p-6 md:p-8 flex-1 flex flex-col">
+                            <p class="text-brand-gold text-xs font-bold mb-3">20. November 2024</p>
+                            <h3 class="font-heading font-bold text-xl md:text-2xl text-brand-dark mb-4 group-hover:text-brand-gold transition-colors">Nové návrhy interiérov od architektov</h3>
+                            <p class="text-gray-500 font-light text-sm mb-6 flex-1">Naši dizajnéri pripravili tri rôzne štýly interiérového vyhotovenia...</p>
+                            <span class="text-xs uppercase tracking-widest font-bold text-brand-dark flex items-center group-hover:text-brand-gold transition-colors">Čítať viac <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PODSTRÁNKA: DETAIL TYP AB ================= -->
+        <div id="view-detail-ab" class="view hidden bg-brand-light pattern-overlay" data-nav-theme="light">
+            <div class="pt-24 md:pt-32 w-[90%] max-w-[1400px] mx-auto pb-20 relative z-10">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-16 mt-6 md:mt-10 items-center">
+                    <div class="flex flex-col justify-center gsap-stagger-text">
+                        <button onclick="navigateTo('map')" class="text-gray-400 hover:text-brand-dark flex items-center mb-6 md:mb-10 text-[10px] md:text-xs uppercase tracking-widest font-semibold"><i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Späť na mapu</button>
+                        <span class="text-brand-gold uppercase tracking-[0.4em] text-xs font-bold mb-4 block">Typ AB</span>
+                        <h1 class="font-heading font-bold text-4xl md:text-5xl lg:text-6xl text-brand-dark mb-6 leading-tight">Rekreačný<br><span class="font-light text-gray-400">Dvojdom</span></h1>
+                        <p class="text-gray-500 font-light text-base md:text-lg mb-8 md:mb-10 max-w-md leading-relaxed">Útulné a moderné riešenie bývania, ktoré síce nie je v priamom kontakte s jazerom, no poskytuje absolútny pokoj. Samozrejmosťou je prístup na 2 spoločné pláže areálu. Ideálne pre rodinný oddych s bezstarostnou údržbou.</p>
+                        <div class="flex flex-wrap gap-8 border-t border-b border-black/10 py-6 mb-10">
+                            <div><span class="block text-2xl md:text-3xl font-heading font-bold text-brand-dark">112<span class="text-base md:text-lg text-brand-gold ml-1">m²</span></span><span class="text-[10px] uppercase tracking-widest text-gray-400 mt-1 block">Úžitk. plocha</span></div>
+                            <div><span class="block text-2xl md:text-3xl font-heading font-bold text-brand-dark">4</span><span class="text-[10px] uppercase tracking-widest text-gray-400 mt-1 block">Izby</span></div>
+                            <div><span class="block text-2xl md:text-3xl font-heading font-bold text-brand-dark">A0</span><span class="text-[10px] uppercase tracking-widest text-gray-400 mt-1 block">Energetika</span></div>
+                        </div>
+                    </div>
+                    <div class="gsap-img-reveal-container rounded-2xl w-full">
+                        <img src="assets/AB_F_L.jpg" onerror="this.src='https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80'" alt="Dvojdom AB" class="gsap-img-reveal w-full h-[40vh] md:h-[60vh] lg:h-[70vh] object-cover rounded-2xl">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 mt-20 md:mt-32">
+                    <div class="lg:col-span-7 gsap-fade-up">
+                        <h3 class="font-heading font-bold text-2xl md:text-3xl text-brand-dark mb-6 md:mb-8">Pôdorysné riešenie</h3>
+                        <div class="bg-brand-gray/90 backdrop-blur-sm p-8 md:p-12 rounded-2xl border border-gray-100 flex items-center justify-center h-[350px] md:h-[500px]">
+                            <div class="text-center text-gray-400">
+                                <i data-lucide="layout-template" class="w-16 h-16 md:w-24 md:h-24 mx-auto mb-4 stroke-1"></i>
+                                <p class="uppercase tracking-widest text-[10px] md:text-xs font-semibold">Miesto pre výkres pôdorysu</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-5 gsap-fade-up overflow-hidden">
+                        <h3 class="font-heading font-bold text-2xl md:text-3xl text-brand-dark mb-6 md:mb-8 flex items-center justify-between">
+                            <span>Galéria interiéru</span>
+                            <span class="text-[10px] text-gray-400 font-sans tracking-widest uppercase font-semibold flex items-center gap-1"><i data-lucide="arrow-left-right" class="w-3 h-3"></i> Posuňte</span>
+                        </h3>
+                        <div class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 h-[350px] md:h-[500px] pb-4">
+                            <!-- Fotka 1 -->
+                            <div class="flex-none w-[85%] md:w-[75%] h-full rounded-2xl overflow-hidden group cursor-zoom-in snap-center relative" onclick="openLightbox('https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80')">
+                                <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Interiér 1" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                                <div class="absolute inset-0 bg-brand-dark/0 group-hover:bg-brand-dark/20 transition-colors duration-300 flex items-center justify-center">
+                                    <i data-lucide="zoom-in" class="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-10 h-10 drop-shadow-md"></i>
+                                </div>
+                            </div>
+                            <!-- Fotka 2 -->
+                            <div class="flex-none w-[85%] md:w-[75%] h-full rounded-2xl overflow-hidden group cursor-zoom-in snap-center relative" onclick="openLightbox('https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80')">
+                                <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Interiér 2" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                                <div class="absolute inset-0 bg-brand-dark/0 group-hover:bg-brand-dark/20 transition-colors duration-300 flex items-center justify-center">
+                                    <i data-lucide="zoom-in" class="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-10 h-10 drop-shadow-md"></i>
+                                </div>
+                            </div>
+                            <!-- Fotka 3 -->
+                            <div class="flex-none w-[85%] md:w-[75%] h-full rounded-2xl overflow-hidden group cursor-zoom-in snap-center relative" onclick="openLightbox('https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80')">
+                                <img src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Interiér 3" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                                <div class="absolute inset-0 bg-brand-dark/0 group-hover:bg-brand-dark/20 transition-colors duration-300 flex items-center justify-center">
+                                    <i data-lucide="zoom-in" class="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-10 h-10 drop-shadow-md"></i>
+                                </div>
+                            </div>
+                            <!-- Fotka 4 -->
+                            <div class="flex-none w-[85%] md:w-[75%] h-full rounded-2xl overflow-hidden group cursor-zoom-in snap-center relative pr-4 md:pr-0" onclick="openLightbox('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80')">
+                                <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Interiér 4" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                                <div class="absolute inset-0 bg-brand-dark/0 group-hover:bg-brand-dark/20 transition-colors duration-300 flex items-center justify-center">
+                                    <i data-lucide="zoom-in" class="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-10 h-10 drop-shadow-md"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PODSTRÁNKA: DETAIL TYP C ================= -->
+        <div id="view-detail-c" class="view hidden bg-brand-light pattern-overlay" data-nav-theme="light">
+            <div class="pt-24 md:pt-32 w-[90%] max-w-[1400px] mx-auto pb-20 relative z-10">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-16 mt-6 md:mt-10 items-center">
+                    <div class="flex flex-col justify-center gsap-stagger-text">
+                        <button onclick="navigateTo('map')" class="text-gray-400 hover:text-brand-dark flex items-center mb-6 md:mb-10 text-[10px] md:text-xs uppercase tracking-widest font-semibold"><i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Späť na mapu</button>
+                        <span class="text-brand-gold uppercase tracking-[0.4em] text-xs font-bold mb-4 block">Typ C</span>
+                        <h1 class="font-heading font-bold text-4xl md:text-5xl lg:text-6xl text-brand-dark mb-6 leading-tight">Rekreačný dom<br><span class="font-light text-gray-400">Pri jazere</span></h1>
+                        <p class="text-gray-500 font-light text-base md:text-lg mb-8 md:mb-10 max-w-md leading-relaxed">Samostatne stojaci dom stvorený pre dokonalý únik z reality. Nachádza sa priamo pri vode, kde si môžete zvoliť vlastné súkromné mólo alebo privátnu pláž s postupným vstupom do jazera. Skutočná exkluzivita.</p>
+                        <div class="flex flex-wrap gap-8 border-t border-b border-black/10 py-6 mb-10">
+                            <div><span class="block text-2xl md:text-3xl font-heading font-bold text-brand-dark">145<span class="text-base md:text-lg text-brand-gold ml-1">m²</span></span><span class="text-[10px] uppercase tracking-widest text-gray-400 mt-1 block">Úžitk. plocha</span></div>
+                            <div><span class="block text-2xl md:text-3xl font-heading font-bold text-brand-dark">5+KK</span><span class="text-[10px] uppercase tracking-widest text-gray-400 mt-1 block">Izby</span></div>
+                            <div><span class="block text-2xl md:text-3xl font-heading font-bold text-brand-dark">Jazero</span><span class="text-[10px] uppercase tracking-widest text-gray-400 mt-1 block">Priamy vstup</span></div>
+                        </div>
+                    </div>
+                    <div class="gsap-img-reveal-container rounded-2xl w-full">
+                        <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" alt="Vila Typ C" class="gsap-img-reveal w-full h-[40vh] md:h-[60vh] lg:h-[70vh] object-cover rounded-2xl">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 mt-20 md:mt-32">
+                    <div class="lg:col-span-7 gsap-fade-up">
+                        <h3 class="font-heading font-bold text-2xl md:text-3xl text-brand-dark mb-6 md:mb-8">Pôdorysné riešenie vily</h3>
+                        <div class="bg-brand-gray/90 backdrop-blur-sm p-8 md:p-12 rounded-2xl border border-gray-100 flex items-center justify-center h-[350px] md:h-[500px]">
+                            <div class="text-center text-gray-400">
+                                <i data-lucide="layout-dashboard" class="w-16 h-16 md:w-24 md:h-24 mx-auto mb-4 stroke-1"></i>
+                                <p class="uppercase tracking-widest text-[10px] md:text-xs font-semibold">Miesto pre výkres pôdorysu (Typ C)</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-5 gsap-fade-up overflow-hidden">
+                        <h3 class="font-heading font-bold text-2xl md:text-3xl text-brand-dark mb-6 md:mb-8 flex items-center justify-between">
+                            <span>Galéria interiéru</span>
+                            <span class="text-[10px] text-gray-400 font-sans tracking-widest uppercase font-semibold flex items-center gap-1"><i data-lucide="arrow-left-right" class="w-3 h-3"></i> Posuňte</span>
+                        </h3>
+                        <div class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 h-[350px] md:h-[500px] pb-4">
+                            <!-- Fotka Vila 1 -->
+                            <div class="flex-none w-[85%] md:w-[75%] h-full rounded-2xl overflow-hidden group cursor-zoom-in snap-center relative" onclick="openLightbox('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80')">
+                                <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Interiér Vila 1" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                                <div class="absolute inset-0 bg-brand-dark/0 group-hover:bg-brand-dark/20 transition-colors duration-300 flex items-center justify-center">
+                                    <i data-lucide="zoom-in" class="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-10 h-10 drop-shadow-md"></i>
+                                </div>
+                            </div>
+                            <!-- Fotka Vila 2 -->
+                            <div class="flex-none w-[85%] md:w-[75%] h-full rounded-2xl overflow-hidden group cursor-zoom-in snap-center relative" onclick="openLightbox('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80')">
+                                <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Interiér Vila 2" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                                <div class="absolute inset-0 bg-brand-dark/0 group-hover:bg-brand-dark/20 transition-colors duration-300 flex items-center justify-center">
+                                    <i data-lucide="zoom-in" class="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-10 h-10 drop-shadow-md"></i>
+                                </div>
+                            </div>
+                            <!-- Fotka Vila 3 -->
+                            <div class="flex-none w-[85%] md:w-[75%] h-full rounded-2xl overflow-hidden group cursor-zoom-in snap-center relative" onclick="openLightbox('https://images.unsplash.com/photo-1600607687400-09ab0ea862bd?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80')">
+                                <img src="https://images.unsplash.com/photo-1600607687400-09ab0ea862bd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Interiér Vila 3" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                                <div class="absolute inset-0 bg-brand-dark/0 group-hover:bg-brand-dark/20 transition-colors duration-300 flex items-center justify-center">
+                                    <i data-lucide="zoom-in" class="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-10 h-10 drop-shadow-md"></i>
+                                </div>
+                            </div>
+                            <!-- Fotka Vila 4 -->
+                            <div class="flex-none w-[85%] md:w-[75%] h-full rounded-2xl overflow-hidden group cursor-zoom-in snap-center relative pr-4 md:pr-0" onclick="openLightbox('https://images.unsplash.com/photo-1600566752355-22d7b56a93eb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80')">
+                                <img src="https://images.unsplash.com/photo-1600566752355-22d7b56a93eb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Interiér Vila 4" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                                <div class="absolute inset-0 bg-brand-dark/0 group-hover:bg-brand-dark/20 transition-colors duration-300 flex items-center justify-center">
+                                    <i data-lucide="zoom-in" class="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-10 h-10 drop-shadow-md"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ================= LIGHTBOX (Zväčšené fotky) ================= -->
+    <div id="lightbox" class="fixed inset-0 z-[100] bg-brand-dark/95 hidden flex items-center justify-center opacity-0 transition-opacity duration-300 backdrop-blur-sm cursor-pointer" onclick="closeLightbox()">
+        <button class="absolute top-6 right-6 md:top-10 md:right-10 text-white hover:text-brand-gold transition-colors z-10 bg-black/20 rounded-full p-2">
+            <i data-lucide="x" class="w-8 h-8 md:w-10 md:h-10"></i>
+        </button>
+        <img id="lightbox-img" src="" class="max-w-[95%] max-h-[90vh] object-contain rounded-lg shadow-2xl scale-95 transition-transform duration-300" onclick="event.stopPropagation()">
+    </div>
+
+    <!-- ================= PÄTIČKA (KONTAKT) ================= -->
+    <footer id="kontakt" class="bg-brand-golf text-white pt-20 md:pt-24 pb-8 md:pb-12 relative z-10">
+        <div class="w-[90%] max-w-[1400px] mx-auto">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-20 mb-12 md:mb-16 border-b border-white/10 pb-12 md:pb-16">
+                <!-- Ľavá strana -->
+                <div>
+                    <div class="w-40 md:w-64 mb-8 md:mb-10">
+                        <img src="assets/logo.svg" alt="GolfSide Logo" class="w-full h-auto object-contain" onerror="this.style.display='none'">
+                    </div>
+                    <p class="text-white/70 font-light text-base md:text-lg mb-8 md:mb-10 max-w-md leading-relaxed">
+                        Radi Vám zodpovieme na všetky Vaše otázky ohľadom rekreačných domov, pozemkov a rezervácií.
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                        <div>
+                            <h4 class="text-[10px] uppercase tracking-widest font-bold text-brand-gold mb-3">Kontakt</h4>
+                            <p class="text-gray-300 font-light text-sm mb-1 hover:text-brand-gold transition cursor-pointer">+421 999 800 800</p>
+                            <p class="text-gray-300 font-light text-sm hover:text-brand-gold transition cursor-pointer">info@golfside.sk</p>
+                        </div>
+                        <div>
+                            <h4 class="text-[10px] uppercase tracking-widest font-bold text-brand-gold mb-3">Sídlo</h4>
+                            <p class="text-gray-300 font-light text-sm leading-relaxed">PMA SEDIN, s. r. o.<br>Medená 10M<br>811 02 Bratislava</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pravá strana -->
+                <div class="bg-white/5 p-6 md:p-10 rounded-2xl backdrop-blur-sm border border-white/10">
+                    <h3 class="font-heading font-bold text-xl md:text-2xl text-white mb-6">Napíšte nám</h3>
+                    <form>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+                            <input type="text" placeholder="Vaše meno" class="w-full bg-transparent border-b border-white/20 text-white text-sm py-3 focus:outline-none focus:border-brand-gold transition-colors placeholder-white/40">
+                            <input type="email" placeholder="E-mail" class="w-full bg-transparent border-b border-white/20 text-white text-sm py-3 focus:outline-none focus:border-brand-gold transition-colors placeholder-white/40">
+                        </div>
+                        <div class="mb-8 md:mb-10">
+                            <textarea placeholder="Vaša správa" rows="3" class="w-full bg-transparent border-b border-white/20 text-white text-sm py-3 focus:outline-none focus:border-brand-gold transition-colors placeholder-white/40 resize-none"></textarea>
+                        </div>
+                        <button type="button" class="w-full bg-brand-gold text-white py-4 rounded-lg text-[10px] md:text-xs uppercase tracking-[0.2em] font-bold hover:bg-white hover:text-brand-golf transition-colors duration-300">
+                            Odoslať správu
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row justify-between items-center text-[9px] md:text-[10px] uppercase tracking-widest text-white/50 font-semibold mt-4 text-center sm:text-left gap-4">
+                <p>&copy; 2026 PMA SEDIN, s. r. o.. Všetky práva vyhradené.</p>
+                <p>Dizajn vytvorilo: <a href="https://alysum.sk" target="_blank" rel="noopener noreferrer" class="hover:text-brand-gold transition-colors">Alysum cs</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ================= JS SKRIPTY ================= -->
+    <script>
+        lucide.createIcons();
+        gsap.registerPlugin(ScrollTrigger);
+
+        const navbar = document.getElementById('navbar');
+        const navBtn = document.getElementById('nav-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const closeMenuBtn = document.getElementById('close-menu-btn');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMapPins();
+            filterTable();
+            updateNavStyle();
+            initGolfBallsBackground(); 
+            initAnimationsForPage('home');
+            initMobileMenu();
+        });
+
+        function initMobileMenu() {
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener('click', openMobileMenu);
+            }
+            if (closeMenuBtn) {
+                closeMenuBtn.addEventListener('click', closeMobileMenu);
+            }
+        }
+
+        function openMobileMenu() {
+            mobileMenu.classList.remove('translate-x-full');
+            document.body.style.overflow = 'hidden'; 
+        }
+
+        function closeMobileMenu() {
+            mobileMenu.classList.add('translate-x-full');
+            document.body.style.overflow = 'auto'; 
+        }
+
+        // LIGHTBOX FUNKCIONALITA
+        function openLightbox(src) {
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            
+            lightboxImg.src = src;
+            lightbox.classList.remove('hidden');
+            
+            setTimeout(() => {
+                lightbox.classList.remove('opacity-0');
+                lightboxImg.classList.remove('scale-95');
+                lightboxImg.classList.add('scale-100');
+            }, 10);
+            
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            
+            lightbox.classList.add('opacity-0');
+            lightboxImg.classList.remove('scale-100');
+            lightboxImg.classList.add('scale-95');
+            
+            setTimeout(() => {
+                lightbox.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }, 300);
+        }
+
+        function navigateFromMobile(pageId) {
+            closeMobileMenu();
+            setTimeout(() => {
+                navigateTo(pageId);
+            }, 300); 
+        }
+
+        function updateNavStyle() {
+            const currentView = document.querySelector('.view.active');
+            if (!currentView || !navbar || !navBtn) return;
+
+            const theme = currentView.getAttribute('data-nav-theme') || 'light';
+            const isScrolled = window.scrollY > 50;
+            const navLogoImg = document.getElementById('nav-logo-img');
+            const navLinks = document.querySelectorAll('.nav-link');
+
+            if (isScrolled) {
+                navbar.classList.remove('nav-transparent');
+                navbar.classList.add('nav-glass', 'py-0');
+                
+                navLinks.forEach(link => {
+                    link.classList.remove('text-white');
+                    link.classList.add('text-brand-dark', 'hover:text-brand-gold');
+                });
+                navBtn.classList.remove('border-white', 'text-white');
+                navBtn.classList.add('border-brand-gold', 'text-brand-gold');
+                
+                if (navLogoImg) navLogoImg.src = 'assets/logo-dark.svg';
+
+            } else {
+                navbar.classList.add('nav-transparent');
+                navbar.classList.remove('nav-glass', 'py-0');
+
+                if (theme === 'dark') {
+                    navLinks.forEach(link => {
+                        link.classList.replace('text-brand-dark', 'text-white');
+                        link.classList.add('hover:text-brand-gold');
+                    });
+                    navBtn.classList.add('border-white', 'text-white');
+                    navBtn.classList.remove('border-brand-gold', 'text-brand-gold');
+                    
+                    if (navLogoImg) navLogoImg.src = 'assets/logo.svg';
+
+                } else {
+                    navLinks.forEach(link => {
+                        link.classList.replace('text-white', 'text-brand-dark');
+                        link.classList.add('hover:text-brand-gold');
+                    });
+                    navBtn.classList.remove('border-white', 'text-white');
+                    navBtn.classList.add('border-brand-gold', 'text-brand-gold');
+                    
+                    if (navLogoImg) navLogoImg.src = 'assets/logo-dark.svg';
+                }
+            }
+        }
+
+        window.addEventListener('scroll', updateNavStyle);
+
+        function navigateTo(pageId) {
+            document.body.style.overflow = 'hidden';
+            
+            const curtain = document.getElementById('transition-curtain');
+            const transText = document.getElementById('transition-text');
+            const views = document.querySelectorAll('.view');
+            const targetView = document.getElementById(`view-${pageId}`);
+            
+            if (!targetView || !curtain || !transText) return;
+
+            const tl = gsap.timeline();
+
+            tl.to(curtain, { y: '0%', duration: 0.6, ease: 'power4.inOut' })
+              .to(transText, { opacity: 1, duration: 0.2 }, "-=0.2")
+              .call(() => {
+                  views.forEach(v => { v.classList.remove('active'); v.classList.add('hidden'); });
+                  targetView.classList.remove('hidden'); targetView.classList.add('active');
+                  window.scrollTo(0,0);
+                  
+                  document.querySelectorAll('.pin-popup').forEach(p => p.classList.add('hidden'));
+                  updateNavStyle(); 
+              })
+              .to(transText, { opacity: 0, duration: 0.2, delay: 0.2 })
+              .to(curtain, { y: '-100%', duration: 0.6, ease: 'power4.inOut' })
+              .call(() => {
+                  gsap.set(curtain, {y: '100%'}); 
+                  document.body.style.overflow = 'auto';
+                  initAnimationsForPage(pageId);
+                  
+                  if(pageId === 'map') filterTable();
+              });
+        }
+
+        // ================= DÁTA DOMOV (Presne vycentrované súradnice) =================
+        const housesData = [
+            // Typ C (26 domov - Vnútorný okruh okolo jazera)
+            { id: 'C1', type: 'C', left: 40.1, top: 20.2, status: 'Voľný', rooms: 5, area: 145, plot: 750, price: 450000 },
+            { id: 'C2', type: 'C', left: 44.1, top: 23.3, status: 'Predaný', rooms: 5, area: 145, plot: 680, price: 450000 },
+            { id: 'C3', type: 'C', left: 48.1, top: 23.6, status: 'Voľný', rooms: 5, area: 145, plot: 710, price: 455000 },
+            { id: 'C4', type: 'C', left: 54.4, top: 23.6, status: 'Rezervovaný', rooms: 5, area: 145, plot: 720, price: 460000 },
+            { id: 'C5', type: 'C', left: 58.2, top: 24.1, status: 'Voľný', rooms: 5, area: 145, plot: 800, price: 470000 },
+            { id: 'C6', type: 'C', left: 61.7, top: 27.2, status: 'Voľný', rooms: 5, area: 145, plot: 760, price: 465000 },
+            { id: 'C7', type: 'C', left: 64.1, top: 32.0, status: 'Predaný', rooms: 5, area: 145, plot: 690, price: 450000 },
+            { id: 'C8', type: 'C', left: 66.3, top: 38.0, status: 'Voľný', rooms: 5, area: 145, plot: 700, price: 455000 },
+            { id: 'C9', type: 'C', left: 70.7, top: 47.5, status: 'Rezervovaný', rooms: 5, area: 145, plot: 740, price: 460000 },
+            { id: 'C10', type: 'C', left: 74.2, top: 52.7, status: 'Voľný', rooms: 5, area: 145, plot: 780, price: 465000 },
+            { id: 'C11', type: 'C', left: 46.2, top: 33.0, status: 'Voľný', rooms: 5, area: 145, plot: 710, price: 455000 },
+            { id: 'C12', type: 'C', left: 50.6, top: 34.3, status: 'Predaný', rooms: 5, area: 145, plot: 650, price: 450000 },
+            { id: 'C13', type: 'C', left: 53.9, top: 34.3, status: 'Voľný', rooms: 5, area: 145, plot: 670, price: 450000 },
+            { id: 'C14', type: 'C', left: 58.3, top: 34.6, status: 'Voľný', rooms: 5, area: 145, plot: 720, price: 460000 },
+            { id: 'C15', type: 'C', left: 60.5, top: 41.8, status: 'Rezervovaný', rooms: 5, area: 145, plot: 730, price: 460000 },
+            { id: 'C16', type: 'C', left: 62.7, top: 49.1, status: 'Voľný', rooms: 5, area: 145, plot: 750, price: 465000 },
+            { id: 'C17', type: 'C', left: 65.0, top: 55.8, status: 'Voľný', rooms: 5, area: 145, plot: 800, price: 475000 },
+            { id: 'C18', type: 'C', left: 66.3, top: 57.2, status: 'Predaný', rooms: 5, area: 145, plot: 700, price: 450000 },
+            { id: 'C19', type: 'C', left: 70.1, top: 60.3, status: 'Voľný', rooms: 5, area: 145, plot: 690, price: 450000 },
+            { id: 'C20', type: 'C', left: 37.8, top: 78.6, status: 'Voľný', rooms: 5, area: 145, plot: 710, price: 455000 },
+            { id: 'C21', type: 'C', left: 33.4, top: 81.3, status: 'Rezervovaný', rooms: 5, area: 145, plot: 730, price: 460000 },
+            { id: 'C22', type: 'C', left: 28.4, top: 81.7, status: 'Voľný', rooms: 5, area: 145, plot: 750, price: 465000 },
+            { id: 'C23', type: 'C', left: 25.1, top: 78.0, status: 'Voľný', rooms: 5, area: 145, plot: 780, price: 470000 },
+            { id: 'C24', type: 'C', left: 23.2, top: 71.3, status: 'Voľný', rooms: 5, area: 145, plot: 740, price: 465000 },
+            { id: 'C25', type: 'C', left: 22.9, top: 65.3, status: 'Predaný', rooms: 5, area: 145, plot: 660, price: 450000 },
+            { id: 'C26', type: 'C', left: 22.7, top: 62.6, status: 'Voľný', rooms: 5, area: 145, plot: 720, price: 460000 },
+
+            // Typ AB (42 domov / 21 párov - Vonkajší okruh okolo cesty)
+            { id: 'A1', type: 'AB', left: 46.7, top: 14.8, status: 'Voľný', rooms: 4, area: 112, plot: 350, price: 320000 },
+            { id: 'B1', type: 'AB', left: 48.0, top: 14.2, status: 'Rezervovaný', rooms: 4, area: 112, plot: 365, price: 325000 },
+            { id: 'A2', type: 'AB', left: 51.2, top: 14.7, status: 'Voľný', rooms: 4, area: 112, plot: 380, price: 330000 },
+            { id: 'B2', type: 'AB', left: 52.5, top: 14.1, status: 'Voľný', rooms: 4, area: 112, plot: 350, price: 320000 },
+            { id: 'A3', type: 'AB', left: 55.6, top: 14.5, status: 'Predaný', rooms: 4, area: 112, plot: 390, price: 330000 },
+            { id: 'B3', type: 'AB', left: 56.9, top: 13.9, status: 'Voľný', rooms: 4, area: 112, plot: 360, price: 320000 },
+            { id: 'A4', type: 'AB', left: 60.3, top: 15.2, status: 'Voľný', rooms: 4, area: 112, plot: 350, price: 320000 },
+            { id: 'B4', type: 'AB', left: 61.8, top: 15.7, status: 'Rezervovaný', rooms: 4, area: 112, plot: 370, price: 325000 },
+            { id: 'A5', type: 'AB', left: 64.9, top: 18.8, status: 'Voľný', rooms: 4, area: 112, plot: 410, price: 340000 },
+            { id: 'B5', type: 'AB', left: 66.2, top: 20.1, status: 'Voľný', rooms: 4, area: 112, plot: 400, price: 335000 },
+            { id: 'A6', type: 'AB', left: 68.4, top: 24.8, status: 'Predaný', rooms: 4, area: 112, plot: 350, price: 320000 },
+            { id: 'B6', type: 'AB', left: 69.5, top: 26.3, status: 'Voľný', rooms: 4, area: 112, plot: 360, price: 320000 },
+            { id: 'A7', type: 'AB', left: 71.0, top: 31.0, status: 'Voľný', rooms: 4, area: 112, plot: 350, price: 320000 },
+            { id: 'B7', type: 'AB', left: 71.9, top: 33.0, status: 'Rezervovaný', rooms: 4, area: 112, plot: 380, price: 330000 },
+            { id: 'A8', type: 'AB', left: 75.1, top: 40.1, status: 'Voľný', rooms: 4, area: 112, plot: 390, price: 335000 },
+            { id: 'B8', type: 'AB', left: 76.3, top: 41.8, status: 'Voľný', rooms: 4, area: 112, plot: 420, price: 345000 },
+            { id: 'A9', type: 'AB', left: 79.0, top: 46.3, status: 'Predaný', rooms: 4, area: 112, plot: 350, price: 320000 },
+            { id: 'B9', type: 'AB', left: 80.3, top: 47.7, status: 'Voľný', rooms: 4, area: 112, plot: 360, price: 320000 },
+            { id: 'A10', type: 'AB', left: 83.7, top: 53.9, status: 'Voľný', rooms: 4, area: 112, plot: 350, price: 320000 },
+            { id: 'B10', type: 'AB', left: 84.7, top: 55.9, status: 'Rezervovaný', rooms: 4, area: 112, plot: 370, price: 325000 },
+            { id: 'A11', type: 'AB', left: 87.1, top: 64.6, status: 'Voľný', rooms: 4, area: 112, plot: 390, price: 330000 },
+            { id: 'B11', type: 'AB', left: 87.5, top: 67.2, status: 'Voľný', rooms: 4, area: 112, plot: 400, price: 335000 },
+            { id: 'A12', type: 'AB', left: 86.9, top: 74.0, status: 'Predaný', rooms: 4, area: 112, plot: 350, price: 320000 },
+            { id: 'B12', type: 'AB', left: 86.7, top: 76.7, status: 'Voľný', rooms: 4, area: 112, plot: 360, price: 320000 },
+            { id: 'A13', type: 'AB', left: 74.4, top: 79.1, status: 'Voľný', rooms: 4, area: 112, plot: 350, price: 320000 },
+            { id: 'B13', type: 'AB', left: 69.7, top: 80.8, status: 'Rezervovaný', rooms: 4, area: 112, plot: 380, price: 330000 },
+            { id: 'A14', type: 'AB', left: 64.5, top: 81.8, status: 'Voľný', rooms: 4, area: 112, plot: 390, price: 335000 },
+            { id: 'B14', type: 'AB', left: 59.2, top: 81.6, status: 'Voľný', rooms: 4, area: 112, plot: 410, price: 340000 },
+            { id: 'A15', type: 'AB', left: 55.2, top: 78.7, status: 'Predaný', rooms: 4, area: 112, plot: 350, price: 320000 },
+            { id: 'B15', type: 'AB', left: 53.7, top: 78.7, status: 'Voľný', rooms: 4, area: 112, plot: 360, price: 320000 },
+            { id: 'A16', type: 'AB', left: 50.3, top: 76.3, status: 'Voľný', rooms: 4, area: 112, plot: 350, price: 320000 },
+            { id: 'B16', type: 'AB', left: 48.7, top: 76.1, status: 'Rezervovaný', rooms: 4, area: 112, plot: 370, price: 325000 },
+            { id: 'A17', type: 'AB', left: 44.9, top: 75.4, status: 'Voľný', rooms: 4, area: 112, plot: 350, price: 320000 },
+            { id: 'B17', type: 'AB', left: 43.5, top: 76.3, status: 'Rezervovaný', rooms: 4, area: 112, plot: 370, price: 325000 },
+            { id: 'A18', type: 'AB', left: 44.5, top: 87.0, status: 'Voľný', rooms: 4, area: 112, plot: 350, price: 320000 },
+            { id: 'B18', type: 'AB', left: 40.2, top: 88.4, status: 'Rezervovaný', rooms: 4, area: 112, plot: 370, price: 325000 },
+            { id: 'A19', type: 'AB', left: 35.4, top: 91.8, status: 'Voľný', rooms: 4, area: 112, plot: 350, price: 320000 },
+            { id: 'B19', type: 'AB', left: 29.8, top: 93.4, status: 'Voľný', rooms: 4, area: 112, plot: 370, price: 325000 },
+            { id: 'A20', type: 'AB', left: 23.8, top: 57.2, status: 'Voľný', rooms: 4, area: 112, plot: 350, price: 320000 },
+            { id: 'B20', type: 'AB', left: 23.6, top: 54.8, status: 'Voľný', rooms: 4, area: 112, plot: 370, price: 325000 },
+            { id: 'A21', type: 'AB', left: 23.6, top: 48.4, status: 'Predaný', rooms: 4, area: 112, plot: 350, price: 320000 },
+            { id: 'B21', type: 'AB', left: 23.6, top: 46.0, status: 'Voľný', rooms: 4, area: 112, plot: 370, price: 325000 }
+        ];
+
+        const formatPrice = (price, status) => {
+            if (status === 'Predaný') return '<span class="text-gray-400 font-medium">Nedostupné</span>';
+            return new Intl.NumberFormat('sk-SK', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(price);
+        };
+
+        function renderMapPins() {
+            const container = document.getElementById('map-pins-container');
+            if (!container) return;
+
+            let html = '';
+
+            housesData.forEach(h => {
+                let innerColorClass = '';
+                let statusTextColor = 'text-white';
+                
+                if (h.status === 'Predaný') {
+                    innerColorClass = '!bg-gray-400';
+                    statusTextColor = 'text-white/60';
+                } else if (h.status === 'Rezervovaný') {
+                    innerColorClass = '!bg-orange-400';
+                    statusTextColor = 'text-white';
+                }
+
+                // DYNAMICKÁ LOGIKA PRE POPUP
+                // Zabezpečíme, že pri okrajoch okno nevbehne mimo mapu
+                let xPos = "-translate-x-1/2 left-1/2"; 
+                let arrowPos = "left-1/2 -translate-x-1/2";
+                
+                // Zvýšená ochranná zóna pre ľavý a pravý okraj
+                if (h.left < 30) {
+                    xPos = "left-0 -translate-x-4"; 
+                    arrowPos = "left-4";
+                } else if (h.left > 70) {
+                    xPos = "right-0 translate-x-4"; 
+                    arrowPos = "right-4";
+                }
+
+                let yPos = "bottom-full mb-3 md:mb-4"; 
+                let arrowY = "top-full border-t-[#B89B7B] border-l-transparent border-r-transparent border-b-transparent";
+
+                // ÚPRAVA PRE ZAMEDZENIE ODREZANIA: 
+                // Akýkoľvek dom v hornej polovici mapy (< 50%) otvorí popup automaticky smerom nadol!
+                if (h.top < 50) {
+                    yPos = "top-full mt-3 md:mt-4"; 
+                    arrowY = "bottom-full border-b-[#B89B7B] border-l-transparent border-r-transparent border-t-transparent";
+                }
+
+                html += `
+                <div id="pin-${h.id}" class="map-pin z-10 transition-transform duration-300 hover:z-30" style="top: ${h.top}%; left: ${h.left}%;" onclick="togglePopup('${h.id}', event)">
+                    <div class="map-pin-inner ${innerColorClass}"></div>
+                    
+                    <!-- UPRAVENÉ TRIEDY: Menšia šírka (w-[220px]), menší padding (p-4) na mobiloch -->
+                    <div id="popup-${h.id}" class="pin-popup hidden absolute ${yPos} ${xPos} w-[220px] md:w-[320px] bg-[#B89B7B] text-white p-4 md:p-6 rounded-sm shadow-2xl z-50 cursor-default" onclick="event.stopPropagation()">
+                        <div class="absolute ${arrowY} ${arrowPos} border-[8px] md:border-[10px] w-0 h-0"></div>
+                        
+                        <h4 class="text-[16px] md:text-[24px] font-heading mb-3 md:mb-6 flex items-center justify-between text-white">
+                            <span>Dom ${h.rooms} izb.</span>
+                            <span class="text-white/50 font-light mx-1 md:mx-2">|</span>
+                            <span class="font-bold">${h.id}</span>
+                        </h4>
+                        
+                        <div class="space-y-2 md:space-y-4 text-xs md:text-[15px] tracking-wide font-sans mb-4 md:mb-6">
+                            <div class="flex justify-between items-center border-b border-white/20 pb-1.5 md:pb-2">
+                                <div class="flex items-center gap-2 md:gap-3">
+                                    <span class="text-white/90">Stav</span>
+                                </div>
+                                <div class="${statusTextColor} font-bold">${h.status}</div>
+                            </div>
+                            
+                            <div class="flex justify-between items-center border-b border-white/20 pb-1.5 md:pb-2">
+                                <div class="flex items-center gap-2 md:gap-3">
+                                    <span class="text-white/90">Počet izieb</span>
+                                </div>
+                                <div class="text-white font-bold text-sm md:text-base">${h.rooms}</div>
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-2 md:gap-3">
+                                    <span class="text-white/90">Plocha</span>
+                                </div>
+                                <div class="text-white font-bold text-sm md:text-base">${h.area} m²</div>
+                            </div>
+                        </div>
+
+                        <button onclick="navigateTo('detail-${h.type.toLowerCase()}')" class="w-full py-2.5 md:py-3.5 bg-white text-brand-golf text-[9px] md:text-xs uppercase tracking-widest font-bold hover:bg-brand-gray transition-colors rounded-sm shadow-md">
+                            Zobraziť detail
+                        </button>
+                    </div>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function togglePopup(id, event) {
+            if(event) event.stopPropagation();
+            
+            document.querySelectorAll('.pin-popup').forEach(p => {
+                if (p.id !== 'popup-' + id) p.classList.add('hidden');
+            });
+            document.querySelectorAll('.map-pin').forEach(pin => pin.classList.remove('z-40'));
+            
+            const popup = document.getElementById('popup-' + id);
+            const pin = document.getElementById('pin-' + id);
+            if (popup && pin) {
+                popup.classList.toggle('hidden');
+                pin.classList.add('z-40');
+            }
+        }
+
+        function filterTable() {
+            const filterElement = document.getElementById('statusFilter');
+            const filterValue = filterElement ? filterElement.value : 'all';
+            const tbody = document.getElementById('houses-table-body');
+            if (!tbody) return;
+            
+            let rowsHtml = '';
+
+            const filteredHouses = filterValue === 'all' 
+                ? housesData 
+                : housesData.filter(h => h.status === filterValue);
+
+            if(filteredHouses.length === 0) {
+                rowsHtml = `<tr><td colspan="8" class="px-6 py-10 text-center text-gray-500 font-light">Nenašli sa žiadne domy pre tento filter.</td></tr>`;
+            } else {
+                filteredHouses.forEach(h => {
+                    let statusBadge = '';
+                    if (h.status === 'Voľný') statusBadge = '<span class="inline-flex items-center px-2.5 py-1 text-[10px] md:text-xs font-bold text-red-600 bg-red-600/10 rounded-sm">Voľný</span>';
+                    else if (h.status === 'Rezervovaný') statusBadge = '<span class="inline-flex items-center px-2.5 py-1 text-[10px] md:text-xs font-bold text-orange-500 bg-orange-400/10 rounded-sm">Rezervovaný</span>';
+                    else statusBadge = '<span class="inline-flex items-center px-2.5 py-1 text-[10px] md:text-xs font-bold text-gray-500 bg-gray-200 rounded-sm">Predaný</span>';
+
+                    let typeName = h.type === 'C' ? 'Dom pri jazere' : 'Dvojdom';
+
+                    rowsHtml += `
+                    <tr class="bg-white border-b border-gray-50 hover:bg-brand-gray/50 transition-colors group">
+                        <td class="px-6 py-4 font-bold text-brand-dark whitespace-nowrap">${h.id}</td>
+                        <td class="px-6 py-4 text-gray-600 font-medium whitespace-nowrap">${typeName}</td>
+                        <td class="px-6 py-4 text-center font-medium text-brand-dark whitespace-nowrap">${h.rooms}</td>
+                        <td class="px-6 py-4 text-gray-600 whitespace-nowrap">${h.area} m²</td>
+                        <td class="px-6 py-4 text-gray-600 whitespace-nowrap">${h.plot} m²</td>
+                        <td class="px-6 py-4 font-heading font-bold text-base md:text-lg whitespace-nowrap">${formatPrice(h.price, h.status)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${statusBadge}</td>
+                        <td class="px-6 py-4 text-right whitespace-nowrap">
+                            <div class="flex items-center justify-end gap-3 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                                <button onclick="highlightHouseOnMap('${h.id}')" class="text-brand-dark hover:text-brand-gold p-2" title="Ukázať na mape">
+                                    <i data-lucide="map-pin" class="w-5 h-5"></i>
+                                </button>
+                                <button onclick="navigateTo('detail-${h.type.toLowerCase()}')" class="text-white bg-brand-dark hover:bg-brand-gold px-4 py-2 text-[10px] uppercase font-bold rounded-sm transition-colors">
+                                    Detail
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+                });
+            }
+
+            tbody.innerHTML = rowsHtml;
+            lucide.createIcons();
+        }
+
+        function highlightHouseOnMap(id) {
+            const mapSection = document.getElementById('map-scroll-target');
+            if (mapSection) {
+                window.scrollTo({
+                    top: mapSection.offsetTop - 120,
+                    behavior: 'smooth'
+                });
+            }
+            togglePopup(id, null);
+
+            const pinInner = document.querySelector(`#pin-${id} .map-pin-inner`);
+            if (pinInner) {
+                document.querySelectorAll('.map-pin-inner').forEach(el => el.classList.remove('pin-highlight'));
+                pinInner.classList.add('pin-highlight');
+                
+                setTimeout(() => {
+                    pinInner.classList.remove('pin-highlight');
+                }, 5000);
+            }
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.map-pin')) {
+                document.querySelectorAll('.pin-popup').forEach(p => p.classList.add('hidden'));
+                document.querySelectorAll('.map-pin').forEach(pin => pin.classList.remove('z-40'));
+            }
+        });
+
+        function initGolfBallsBackground() {
+            const layer = document.getElementById('golf-balls-layer');
+            if(!layer) return;
+            
+            const ballHTML = `<img src="assets/golf-ball.svg" alt="golf lopticka" class="w-full h-full opacity-10" onerror="this.style.display='none'" />`;
+
+            for(let i=0; i<6; i++) {
+                const div = document.createElement('div');
+                div.innerHTML = ballHTML;
+                div.className = "absolute text-brand-golf anim-ball";
+                
+                const size = (Math.random() * 100 + 37.5); 
+                div.style.width = size + 'px';
+                div.style.height = size + 'px';
+                div.style.left = (Math.random() * 100) + '%';
+                div.style.top = (Math.random() * 100) + '%';
+                
+                layer.appendChild(div);
+
+                gsap.to(div, {
+                    x: "random(-200, 200)",
+                    y: "random(-200, 200)",
+                    rotation: 360,
+                    duration: "random(20, 40)",
+                    ease: "sine.inOut",
+                    yoyo: true,
+                    repeat: -1
+                });
+            }
+        }
+
+        function initAnimationsForPage(pageId) {
+            ScrollTrigger.getAll().forEach(st => st.kill()); 
+
+            if (pageId === 'home') {
+                gsap.fromTo('.gsap-hero-title', 
+                    { y: '100%' },
+                    { y: '0%', duration: 1.2, stagger: 0.15, ease: "power4.out", delay: 0.2 }
+                );
+
+                gsap.to('.hero-img', {
+                    yPercent: 15, ease: "none",
+                    scrollTrigger: { trigger: '#view-home section', start: "top top", end: "bottom top", scrub: true }
+                });
+            }
+
+            if (pageId === 'map') {
+                gsap.fromTo('.map-pin',
+                    { scale: 0, opacity: 0 },
+                    { scale: 1, opacity: 1, duration: 0.5, stagger: 0.02, ease: "back.out(1.5)", delay: 0.3 }
+                );
+            }
+
+            const textBlocks = document.querySelectorAll(`#view-${pageId} .gsap-stagger-text > *`);
+            if(textBlocks.length > 0) {
+                gsap.fromTo(textBlocks, 
+                    { y: 40, opacity: 0 },
+                    { y: 0, opacity: 1, duration: 1, stagger: 0.15, ease: "power3.out", 
+                      scrollTrigger: { trigger: textBlocks[0].parentElement, start: "top 80%" } }
+                );
+            }
+
+            const images = document.querySelectorAll(`#view-${pageId} .gsap-img-reveal`);
+            images.forEach(img => {
+                gsap.fromTo(img,
+                    { clipPath: 'polygon(0 0, 100% 0, 100% 0, 0 0)', scale: 1.1 },
+                    { clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)', scale: 1, duration: 1.5, ease: "power4.inOut",
+                      scrollTrigger: { trigger: img.parentElement, start: "top 75%" } }
+                );
+            });
+
+            const fadeUps = document.querySelectorAll(`#view-${pageId} .gsap-fade-up`);
+            fadeUps.forEach(elem => {
+                gsap.fromTo(elem,
+                    { y: 60, opacity: 0 },
+                    { y: 0, opacity: 1, duration: 1, ease: "power3.out",
+                      scrollTrigger: { trigger: elem, start: "top 85%" } }
+                );
+            });
+        }
+    </script>
+</body>
+</html>
