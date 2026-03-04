@@ -1,8 +1,10 @@
-<style>
+<!-- ================= CSS ŠTÝLY ================= -->
+    <style>
         body { background-color: #ffffff; color: #111111; overflow-x: hidden; }
         .view { display: none; }
         .view.active { display: block; }
         
+        /* Animácia prechodu medzi podstránkami */
         .page-transition {
             position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
             background-color: #01352f; z-index: 9999;
@@ -17,6 +19,7 @@
             justify-content: center;
         }
 
+        /* Navigácia */
         .nav-glass {
             background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid rgba(0, 0, 0, 0.05);
@@ -34,7 +37,7 @@
             animation: none;
         }
 
-        /* Pulzovanie menu tlačidla */
+        /* Pulzujúce efekty na tlačidlách */
         @keyframes menuPulse {
             0% { box-shadow: 0 0 0 0 rgba(184, 155, 123, 0.7); }
             70% { box-shadow: 0 0 0 12px rgba(184, 155, 123, 0); }
@@ -49,27 +52,46 @@
         }
         .btn-pulse { animation: customPulse 2s infinite; }
 
-        /* Piny na mape */
-        .map-pin { position: absolute; transform: translate(-50%, -50%); cursor: pointer; z-index: 10; }
+        /* Mapové piny (Bodky na mape) - ÚPRAVA PRE MOBIL */
+        .map-pin { 
+            position: absolute; transform: translate(-50%, -50%); cursor: pointer; z-index: 10; 
+        }
         .map-pin::before {
-            content: ''; position: absolute; top: 50%; left: 50%; width: 30px; height: 30px;
-            background-color: rgba(184, 155, 123, 0.3); border-radius: 50%;
+            content: ''; position: absolute; top: 50%; left: 50%; 
+            width: 20px; height: 20px; /* Menší pulz na mobile */
+            background-color: rgba(220, 38, 38, 0.4); 
+            border-radius: 50%;
             transform: translate(-50%, -50%); animation: pulse 2s infinite;
         }
         .map-pin-inner {
-            position: relative; width: 12px; height: 12px; background-color: #B89B7B;
+            position: relative; 
+            width: 8px; height: 8px; /* Menšia bodka na mobile */
+            background-color: #dc2626; 
             border-radius: 50%; box-shadow: 0 0 10px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
+            transition: transform 0.3s ease, background-color 0.3s ease;
         }
-        .map-pin:hover { z-index: 30; }
-        .map-pin:hover .map-pin-inner { transform: scale(1.5); background-color: #01352f; }
+        .map-pin:hover { z-index: 40; }
+        .map-pin:hover .map-pin-inner { transform: scale(1.6); background-color: #01352f; }
         
+        /* Obnovenie pôvodnej veľkosti pinov na tabletoch a počítačoch */
+        @media (min-width: 768px) {
+            .map-pin::before { width: 30px; height: 30px; }
+            .map-pin-inner { width: 12px; height: 12px; }
+        }
+
         @keyframes pulse {
             0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
             100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
         }
 
-        /* Pridaná jemná levitujúca animácia pre ikony benefitov */
+        /* Highlight efekt po prekliku z tabuľky na mapu */
+        .pin-highlight {
+            transform: scale(2.5) !important;
+            background-color: #01352f !important;
+            box-shadow: 0 0 20px rgba(1, 53, 47, 0.8) !important;
+            transition: all 0.3s ease !important;
+        }
+
         @keyframes floatIcon {
             0% { transform: translateY(0px); }
             50% { transform: translateY(-5px); }
@@ -77,12 +99,30 @@
         }
         .icon-float { animation: floatIcon 3.5s ease-in-out infinite; }
 
-        .pin-popup::after {
-            content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
-            border-width: 10px; border-style: solid; border-color: #B89B7B transparent transparent transparent; 
-        }
-
+        /* GSAP a Scroll vlastnosti */
         .overflow-hidden-text { overflow: hidden; display: inline-block; vertical-align: bottom; }
         .gsap-img-reveal-container { overflow: hidden; }
         .gsap-img-reveal { clip-path: polygon(0 0, 100% 0, 100% 0, 0 0); }
+
+        .table-scrollbar::-webkit-scrollbar { height: 6px; }
+        .table-scrollbar::-webkit-scrollbar-track { background: #f5f5f5; border-radius: 4px; }
+        .table-scrollbar::-webkit-scrollbar-thumb { background: #B89B7B; border-radius: 4px; }
+
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Topografický vzor (Jemné pozadie pre svetlé plochy) */
+        .pattern-overlay { position: relative; overflow: hidden; z-index: 1; }
+        .pattern-overlay::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url('assets/topographic%20pattern.svg'); 
+            background-repeat: no-repeat; 
+            background-position: center center; 
+            background-size: cover; 
+            opacity: 0.05; /* Ubraná viditeľnosť, veľmi jemný efekt */
+            pointer-events: none;
+            z-index: -1;
+        }
     </style>
